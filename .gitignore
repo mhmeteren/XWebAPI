@@ -1,0 +1,10 @@
+*/bin
+*/obj
+*/appsettings.*
+/packages
+
+.vs/
+
+
+*/Logs
+*/Migrations

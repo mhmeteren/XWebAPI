@@ -1,0 +1,6 @@
+@XWebAPI_HostAddress = http://localhost:5133
+
+GET {{XWebAPI_HostAddress}}/test/
+Accept: application/json
+
+###
