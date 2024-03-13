@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Minio" Version="6.0.1" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.7.17" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.0" />
+	 <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+	 <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+	 <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
+	 <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
+	 <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Entities\Entities.csproj" />
+    <ProjectReference Include="..\Repositories\Repositories.csproj" />
+  </ItemGroup>
+
+</Project>
