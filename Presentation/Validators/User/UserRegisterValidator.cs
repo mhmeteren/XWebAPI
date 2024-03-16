@@ -1,7 +1,7 @@
 ﻿using Entities.DataTransferObjects.User;
 using FluentValidation;
 
-namespace Presentation.Validators
+namespace Presentation.Validators.User
 {
     public class UserRegisterValidator : AbstractValidator<UserDtoForRegister>
     {
@@ -11,7 +11,7 @@ namespace Presentation.Validators
             RuleFor(x => x.FullName).NotNull().NotEmpty().Length(5, 100);
             RuleFor(x => x.UserName).NotNull().NotEmpty().Length(5, 100);
             RuleFor(x => x.Email).EmailAddress().NotEmpty();
-            RuleFor(x => x.Birthday).Must(i => i == null || ValidatorHelpers.BirthdayDateRange(i));
+            RuleFor(x => x.Birthday).Must(ValidatorHelpers.IsValidBirthdayDate);
         }
     }
 }

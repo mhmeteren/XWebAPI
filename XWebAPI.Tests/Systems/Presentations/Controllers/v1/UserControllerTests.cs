@@ -12,7 +12,7 @@ using Entities.Exceptions.BaseUser;
 using XWebAPI.Tests.Fixtures;
 using Entities.DataTransferObjects.Follower;
 using Entities.RequestFeatures;
-using Presentation.Validators;
+using Presentation.Validators.User;
 
 
 namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
@@ -130,11 +130,11 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
             //Arrange
             var userDto = new UserDtoForRegister
             (
-                FullName : "u",
-                Email : "t",
-                UserName : "u",
-                Birthday : new DateTime(1, 1, 1),
-                Password : "p"
+                FullName: "u",
+                Email: "t",
+                UserName: "u",
+                Birthday: DateTime.Now.AddYears(-5),
+                Password: "p"
             );
 
             var mockService = new Mock<IServiceManager>();
@@ -151,7 +151,7 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
 
             controller.ModelState.Keys.Should().NotContain("Password");
 
-            var expectedErrorKeys = new List<string> { "FullName", "Email", "UserName", "Birthday"};
+            var expectedErrorKeys = new List<string> { "FullName", "Email", "UserName", "Birthday" };
             expectedErrorKeys.ForEach(i => controller.ModelState.Keys.Should().Contain(i));
         }
 
@@ -209,11 +209,11 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
 
             var userDto = new UserDtoForRegister
             (
-                FullName : "TestFullName",
-                Email : "test@test.com",
-                UserName : "Testusername",
-                Birthday : DateTime.Now.AddYears(-20),
-                Password : "ValIdP@ssw0rd!123"
+                FullName: "TestFullName",
+                Email: "test@test.com",
+                UserName: "Testusername",
+                Birthday: DateTime.Now.AddYears(-20),
+                Password: "ValIdP@ssw0rd!123"
             );
 
             var validator = new UserRegisterValidator();
@@ -246,40 +246,33 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         {
 
             //Arrange
-            var fake_username = "testUser";
+            var loggedInUsername = "testUser";
 
-            var fakeClaims = new List<Claim>
-            {
-                new(ClaimTypes.Name, fake_username),
-            };
-
-            var identity = new ClaimsIdentity(fakeClaims, It.IsAny<string>());
-            var user = new ClaimsPrincipal(identity);
-
-
-            var mockHttpContext = new DefaultHttpContext
-            {
-                User = user
-            };
+            var userDto = new UserDtoForAccountUpdate
+            (
+                FullName: "ValidFullName",
+                About: "ValidAbout",
+                Birthday: DateTime.Now.AddYears(-20),
+                Gender: "Male",
+                Location: "localhost"
+            );
 
             var mockServiceManager = new Mock<IServiceManager>();
 
-            mockServiceManager.Setup(s => s.UserService.UpdateProfile(fake_username, It.IsAny<UserDtoForAccountUpdate>()))
+            mockServiceManager.Setup(s => s.UserService.UpdateProfile(loggedInUsername, userDto))
                     .ReturnsAsync(IdentityResult.Success);
 
+            var validator = new UserAccountUpdateValidator();
 
             var userController = new UserController(mockServiceManager.Object)
             {
-                ControllerContext = new ControllerContext
-                {
-                    HttpContext = mockHttpContext,
-                }
+                ControllerContext = SystemFixtures.ControllerContextConfigure(loggedInUsername),
             };
 
 
 
             //Act
-            var result = await userController.UserUpdateProfile(It.IsAny<UserDtoForAccountUpdate>());
+            var result = await userController.UserUpdateProfile(userDto, validator);
 
 
             //Assert
@@ -288,37 +281,75 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         }
 
         [Fact]
-        public async Task UserUpdateProfile_WithValidUserDto_Return400BadRequest()
+        public async Task UserUpdateProfile_WithValidUserDto_Return400BadRequestByFluentValidation()
         {
-
             //Arrange
-            var fake_username = "testUser";
+            var userDto = new UserDtoForAccountUpdate
+            (
+                FullName: "",
+                About: "",
+                Birthday: DateTime.Now.AddYears(-5),
+                Gender: "InvalidGender",
+                Location: ""
+            );
 
             var mockServiceManager = new Mock<IServiceManager>();
-
-            var mockIdentityFailed = IdentityResult.Failed(
-                    new IdentityError { Code = "test", Description = "testfaledmsq" });
-
-            mockServiceManager.Setup(s => s.UserService.UpdateProfile(fake_username, It.IsAny<UserDtoForAccountUpdate>()))
-                    .ReturnsAsync(mockIdentityFailed);
-
-
-            var userController = new UserController(mockServiceManager.Object)
-            {
-                ControllerContext = new ControllerContext
-                {
-                    HttpContext = UserFixtures.GetMockControllerContext(fake_username),
-                }
-            };
+            var validator = new UserAccountUpdateValidator();
+            var userController = new UserController(mockServiceManager.Object);
 
 
             //Act
-            var result = await userController.UserUpdateProfile(It.IsAny<UserDtoForAccountUpdate>());
+            var result = await userController.UserUpdateProfile(userDto, validator);
 
 
             //Assert
             var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
+
+            var expectedErrorKeys = new List<string> { "FullName", "About", "Birthday", "Gender", "Location" };
+            expectedErrorKeys.ForEach(i => userController.ModelState.Keys.Should().Contain(i));
+        }
+
+        [Fact]
+        public async Task UserUpdateProfile_WithValidUserDto_Return400BadRequestByIdentityValidation()
+        {
+
+            //Arrange
+            var loggedInUsername = "testUser";
+
+            var userDto = new UserDtoForAccountUpdate
+            (
+                FullName: "ValidFullName",
+                About: "ValidAbout",
+                Birthday: DateTime.Now.AddYears(-20),
+                Gender: "Male",
+                Location: "localhost"
+            );
+
+            var mockServiceManager = new Mock<IServiceManager>();
+
+            var mockIdentityFailed = IdentityResult.Failed(
+                    new IdentityError { Code = "CustomErrorKey", Description = "CustomErrorMesssage" });
+
+            mockServiceManager.Setup(s => s.UserService.UpdateProfile(loggedInUsername, It.IsAny<UserDtoForAccountUpdate>()))
+                    .ReturnsAsync(mockIdentityFailed);
+
+            var validator = new UserAccountUpdateValidator();
+
+            var userController = new UserController(mockServiceManager.Object)
+            {
+                ControllerContext = SystemFixtures.ControllerContextConfigure(loggedInUsername),
+            };
+
+
+            //Act
+            var result = await userController.UserUpdateProfile(userDto, validator);
+
+
+            //Assert
+            var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequestResult.StatusCode.Should().Be(400);
+            userController.ModelState.Keys.Should().Contain(mockIdentityFailed.Errors.First().Code);
         }
 
 
@@ -327,25 +358,35 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         {
 
             //Arrange
-            var fake_username = "testUser";
+            var loggedInUsername = "testUser";
+            var userDto = new UserDtoForAccountUpdate
+            (
+                FullName: "ValidFullName",
+                About: "ValidAbout",
+                Birthday: DateTime.Now.AddYears(-20),
+                Gender: "Male",
+                Location: "localhost"
+            );
+
 
             var mockServiceManager = new Mock<IServiceManager>();
 
-            mockServiceManager.Setup(s => s.UserService.UpdateProfile(fake_username, It.IsAny<UserDtoForAccountUpdate>()))
+            mockServiceManager.Setup(s => s.UserService.UpdateProfile(loggedInUsername, It.IsAny<UserDtoForAccountUpdate>()))
                     .ThrowsAsync(new UserNotFoundException());
 
+            var validator = new UserAccountUpdateValidator();
 
             var userController = new UserController(mockServiceManager.Object)
             {
                 ControllerContext = new ControllerContext
                 {
-                    HttpContext = UserFixtures.GetMockControllerContext(fake_username),
+                    HttpContext = UserFixtures.GetMockControllerContext(loggedInUsername),
                 }
             };
 
 
             //Act
-            Func<Task> act = async () => await userController.UserUpdateProfile(It.IsAny<UserDtoForAccountUpdate>());
+            Func<Task> act = async () => await userController.UserUpdateProfile(userDto, validator);
 
 
             //Assert

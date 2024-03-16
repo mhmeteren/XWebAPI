@@ -4,7 +4,7 @@
         string FullName,
         string UserName,
         string Email,
-        DateTime Birthday,
+        DateTime? Birthday,
         string Password)
     {
     }

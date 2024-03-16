@@ -31,9 +31,9 @@ namespace XWebAPI.Tests.Systems.Services
                 .Returns(false);
 
 
-            var service = new UsersManager(mockRepository.Object, 
-                SystemFixtures.GetAPIsMapper(), 
-                mockIdentityUserManager.Object, 
+            var service = new UsersManager(mockRepository.Object,
+                SystemFixtures.GetAPIsMapper(),
+                mockIdentityUserManager.Object,
                 mockFileUploadServide.Object,
                 mockValidatorservice.Object);
 
@@ -65,8 +65,8 @@ namespace XWebAPI.Tests.Systems.Services
                 .ReturnsAsync(() => null);
 
             var service = new UsersManager(
-                mockRepository.Object, 
-                SystemFixtures.GetAPIsMapper(), 
+                mockRepository.Object,
+                SystemFixtures.GetAPIsMapper(),
                 mockIdentityUserManager.Object,
                 mockFileUploadServide.Object,
                 mockValidatorservice.Object);
@@ -110,9 +110,9 @@ namespace XWebAPI.Tests.Systems.Services
                 .ReturnsAsync(user);
 
             var service = new UsersManager(
-                mockRepository.Object, 
-                SystemFixtures.GetAPIsMapper(), 
-                mockIdentityUserManager.Object, 
+                mockRepository.Object,
+                SystemFixtures.GetAPIsMapper(),
+                mockIdentityUserManager.Object,
                 mockFileUploadServide.Object,
                 mockValidatorservice.Object);
 
@@ -140,10 +140,10 @@ namespace XWebAPI.Tests.Systems.Services
 
             var userDto = new UserDtoForRegister
             (
-                FullName:"TestFullName",
+                FullName: "TestFullName",
                 Email: "test@test.com",
                 UserName: "Testusername",
-                Birthday: new DateTime(1990, 1, 1),
+                Birthday: DateTime.Now.AddYears(-20),
                 Password: "ValIdP@ssw0rd!123"
             );
 
@@ -157,8 +157,8 @@ namespace XWebAPI.Tests.Systems.Services
 
             var userService = new UsersManager(
                 mockRepositoryManager.Object,
-                mockMapper, 
-                mockBaseUserManager.Object, 
+                mockMapper,
+                mockBaseUserManager.Object,
                 mockFileUploadServide.Object,
                 mockValidatorservice.Object);
 
@@ -185,19 +185,19 @@ namespace XWebAPI.Tests.Systems.Services
                 ProfileImageUrl = "/image",
                 BackgroundImageUrl = "/image",
                 About = "TestAbout",
-                Birthday = new DateTime(1990, 1, 1),
+                Birthday = DateTime.Now.AddYears(-20),
                 Gender = "Male",
                 Location = "localhost"
             };
 
-            var userDto = new UserDtoForAccountUpdate()
-            {
-                FullName = "test",
-                About = "test",
-                Birthday = new DateTime(1990, 1, 1),
-                Gender = "Male",
-                Location = "localhost"
-            };
+            var userDto = new UserDtoForAccountUpdate
+            (
+                FullName: "test",
+                About: "test",
+                Birthday: DateTime.Now.AddYears(-20),
+                Gender: "Male",
+                Location: "localhost"
+            );
 
 
             var repositoryManager = new Mock<IRepositoryManager>();
@@ -220,7 +220,7 @@ namespace XWebAPI.Tests.Systems.Services
 
 
             var userManager = new UsersManager(repositoryManager.Object,
-                mapper, 
+                mapper,
                 baseUserManager.Object,
                 fileUploadService.Object,
                 mockValidatorservice.Object);
@@ -248,19 +248,21 @@ namespace XWebAPI.Tests.Systems.Services
                 ProfileImageUrl = "/image",
                 BackgroundImageUrl = "/image",
                 About = "TestAbout",
-                Birthday = new DateTime(1990, 1, 1),
+                Birthday = DateTime.Now.AddYears(-20),    
                 Gender = "Male",
                 Location = "localhost"
             };
 
-            var userDto = new UserDtoForAccountUpdate()
-            {
-                FullName = "test",
-                About = "test",
-                Birthday = new DateTime(1990, 1, 1),
-                Gender = "Male",
-                Location = "localhost"
-            };
+
+            var userDto = new UserDtoForAccountUpdate
+             (
+                 FullName: "test",
+                 About: "test",
+                 Birthday: DateTime.Now.AddYears(-20),
+                 Gender: "Male",
+                 Location: "localhost"
+             );
+
 
 
             var repositoryManager = new Mock<IRepositoryManager>();
@@ -286,7 +288,7 @@ namespace XWebAPI.Tests.Systems.Services
             var userManager = new UsersManager(repositoryManager.Object,
                 mapper,
                 baseUserManager.Object,
-                fileUploadService.Object, 
+                fileUploadService.Object,
                 mockValidatorservice.Object);
 
 
@@ -321,15 +323,15 @@ namespace XWebAPI.Tests.Systems.Services
 
 
             var userManager = new UsersManager(
-                repositoryManager.Object, 
-                mapper, 
-                baseUserManager.Object, 
+                repositoryManager.Object,
+                mapper,
+                baseUserManager.Object,
                 fileUploadService.Object,
                 mockValidatorservice.Object);
 
 
             //Act
-            Func<Task> act = async() => await userManager.UpdateProfile(nonExistentUsername, It.IsAny<UserDtoForAccountUpdate>());
+            Func<Task> act = async () => await userManager.UpdateProfile(nonExistentUsername, It.IsAny<UserDtoForAccountUpdate>());
 
             //Assert
             await act.Should().ThrowAsync<UserNotFoundException>();
