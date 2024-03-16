@@ -12,6 +12,7 @@ using Entities.Exceptions.BaseUser;
 using XWebAPI.Tests.Fixtures;
 using Entities.DataTransferObjects.Follower;
 using Entities.RequestFeatures;
+using Presentation.Validators;
 
 
 namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
@@ -123,26 +124,54 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         #region RegisterUser
 
         [Fact]
-        public async Task RegisterUser_WithInValidUserObject_ReturnBadRequest()
+        public async Task RegisterUser_WithInValidUserObject_ReturnBadRequestByFluentValidation()
         {
 
             //Arrange
-
             var userDto = new UserDtoForRegister
-            {
-                FullName = "u",
-                Email = "test",
-                UserName = "u",
-                Birthday = new DateTime(1, 1, 1),
-                Password = "p"
-            };
+            (
+                FullName : "u",
+                Email : "t",
+                UserName : "u",
+                Birthday : new DateTime(1, 1, 1),
+                Password : "p"
+            );
 
+            var mockService = new Mock<IServiceManager>();
+            var validator = new UserRegisterValidator();
+            var controller = new UserController(mockService.Object);
+
+            //Act
+            var result = await controller.RegisterUser(userDto, validator);
+
+
+            //Assert
+            var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequestResult.StatusCode.Should().Be(400);
+
+            controller.ModelState.Keys.Should().NotContain("Password");
+
+            var expectedErrorKeys = new List<string> { "FullName", "Email", "UserName", "Birthday"};
+            expectedErrorKeys.ForEach(i => controller.ModelState.Keys.Should().Contain(i));
+        }
+
+
+
+        [Fact]
+        public async Task RegisterUser_WithInValidUserObject_ReturnBadRequestByIdentityValidation()
+        {
+
+            //Arrange
+            var userDto = new UserDtoForRegister
+            (
+                FullName: "ValidFullName",
+                Email: "validemail@x.com",
+                UserName: "validusername",
+                Birthday: DateTime.Now.AddYears(-20),
+                Password: "p"
+            );
 
             var failedPasswordPolicyResult = IdentityResult.Failed(
-                new IdentityError { Code = "FullName", Description = "Invalid FullName" },
-                new IdentityError { Code = "Email", Description = "Invalid Email" },
-                new IdentityError { Code = "UserName", Description = "Invalid UserName" },
-                new IdentityError { Code = "Birthday", Description = "Invalid Birthday" },
                 new IdentityError { Code = "Password", Description = "Password does not meet the policy requirements" });
 
             var mockService = new Mock<IServiceManager>();
@@ -150,26 +179,26 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
                 .ReturnsAsync(failedPasswordPolicyResult);
 
 
+            var validator = new UserRegisterValidator();
             var controller = new UserController(mockService.Object);
 
             //Act
-
-            var result = await controller.RegisterUser(userDto);
+            var result = await controller.RegisterUser(userDto, validator);
 
 
             //Assert
             var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
 
-            var error = badRequestResult.Value as SerializableError;
-            error.Should().NotBeNull();
+            controller.ModelState.Keys.Should().Contain("Password");
 
-            (error["FullName"] as string[]).Should().Contain("Invalid FullName");
-            (error["Email"] as string[]).Should().Contain("Invalid Email");
-            (error["UserName"] as string[]).Should().Contain("Invalid UserName");
-            (error["Birthday"] as string[]).Should().Contain("Invalid Birthday");
-            (error["Password"] as string[]).Should().Contain("Password does not meet the policy requirements");
+            var expectedErrorKeys = new List<string> { "FullName", "Email", "UserName", "Birthday" };
+            expectedErrorKeys.ForEach(i => controller.ModelState.Keys.Should().NotContain(i));
         }
+
+
+
+
 
 
         [Fact]
@@ -179,15 +208,15 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
             //Arrange
 
             var userDto = new UserDtoForRegister
-            {
-                FullName = "TestFullName",
-                Email = "test@test.com",
-                UserName = "Testusername",
-                Birthday = new DateTime(1990, 1, 1),
-                Password = "ValIdP@ssw0rd!123"
-            };
+            (
+                FullName : "TestFullName",
+                Email : "test@test.com",
+                UserName : "Testusername",
+                Birthday : DateTime.Now.AddYears(-20),
+                Password : "ValIdP@ssw0rd!123"
+            );
 
-
+            var validator = new UserRegisterValidator();
 
             var mockService = new Mock<IServiceManager>();
             mockService.Setup(s => s.UserService.ReqisterUserAsync(userDto))
@@ -197,7 +226,7 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
             var controller = new UserController(mockService.Object);
 
             //Act   
-            var result = await controller.RegisterUser(userDto);
+            var result = await controller.RegisterUser(userDto, validator);
 
 
             //Assert

@@ -139,13 +139,13 @@ namespace XWebAPI.Tests.Systems.Services
             var mockBaseUserManager = UserFixtures.MockUserManager<BaseUser>();
 
             var userDto = new UserDtoForRegister
-            {
-                FullName = "TestFullName",
-                Email = "test@test.com",
-                UserName = "Testusername",
-                Birthday = new DateTime(1990, 1, 1),
-                Password = "ValIdP@ssw0rd!123"
-            };
+            (
+                FullName:"TestFullName",
+                Email: "test@test.com",
+                UserName: "Testusername",
+                Birthday: new DateTime(1990, 1, 1),
+                Password: "ValIdP@ssw0rd!123"
+            );
 
             var successResult = IdentityResult.Success;
             mockBaseUserManager.Setup(m => m.CreateAsync(It.IsAny<Users>(), It.IsAny<string>()))

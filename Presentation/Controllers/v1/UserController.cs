@@ -1,9 +1,11 @@
 ﻿using Entities.DataTransferObjects.User;
 using Entities.RequestFeatures;
 using Entities.UtilityClasses;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Presentation.ActionFilters;
 using Services.Contracts;
 
@@ -50,9 +52,17 @@ namespace Presentation.Controllers.v1
 
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> RegisterUser([FromBody] UserDtoForRegister userDto)
+        public async Task<IActionResult> RegisterUser([FromBody] UserDtoForRegister userDto,
+            [FromServices] IValidator<UserDtoForRegister> validator)
         {
+
+            var validatorResult = validator.Validate(userDto);
+            if (!validatorResult.IsValid)
+            {
+                validatorResult.Errors.ForEach(error => ModelState.AddModelError(error.PropertyName, error.ErrorMessage));
+                return BadRequest(ModelState);
+            }
+
             var result = await _serviceManager.UserService.ReqisterUserAsync(userDto);
             if (!result.Succeeded)
             {

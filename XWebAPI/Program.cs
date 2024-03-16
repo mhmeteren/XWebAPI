@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Services.Contracts;
@@ -47,7 +49,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+builder.Services.AddValidatorsFromAssemblyContaining<Presentation.AssemblyReference>();
 
 //Extensions
 builder.Services.ConfigureSqlContext(builder.Configuration);
