@@ -1,19 +1,19 @@
-﻿using Entities.DataTransferObjects.User;
+﻿using Asp.Versioning;
+using Entities.DataTransferObjects.User;
 using Entities.RequestFeatures;
 using Entities.UtilityClasses;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.ActionFilters;
 using Services.Contracts;
 
 
 namespace Presentation.Controllers.v1
 {
-
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/User")]
+    [Route("api/v{v:apiVersion}/User")]
     public class UserController(IServiceManager serviceManager) : ControllerBase
     {
         readonly private IServiceManager _serviceManager = serviceManager;

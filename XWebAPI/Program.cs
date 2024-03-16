@@ -61,6 +61,7 @@ builder.Services.ConfigureActionFilters();
 builder.Services.ConfigureFileMangers(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.ConfigureRedis(builder.Configuration);
+builder.Services.ConfigureVersioning();
 
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);

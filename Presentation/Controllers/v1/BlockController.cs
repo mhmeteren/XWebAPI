@@ -1,4 +1,5 @@
 ﻿
+using Asp.Versioning;
 using Entities.RequestFeatures;
 using Entities.UtilityClasses;
 using Microsoft.AspNetCore.Authorization;
@@ -7,8 +8,10 @@ using Services.Contracts;
 
 namespace Presentation.Controllers.v1
 {
+
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/Block")]
+    [Route("api/v{v:apiVersion}/Block")]
     public class BlockController(IServiceManager serviceManager) : ControllerBase
     {
         private readonly IServiceManager _serviceManager = serviceManager;

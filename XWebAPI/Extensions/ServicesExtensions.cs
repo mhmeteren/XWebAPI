@@ -1,4 +1,5 @@
-﻿using Entities.Models;
+﻿using Asp.Versioning;
+using Entities.Models;
 using Entities.UtilityClasses.Minio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +12,7 @@ using Services;
 using Services.Contracts;
 using StackExchange.Redis;
 using System.Text;
+
 
 namespace XWebAPI.Extensions
 {
@@ -43,12 +45,40 @@ namespace XWebAPI.Extensions
         }
 
 
+
         public static void ConfigureFileMangers(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IFileUploadService, FileUploadManager>();
             services.AddSingleton<IFileDownloadService, FileDownloadManager>();
             services.Configure<CustomMinioConfig>(configuration.GetSection("MinioSettings"));
         }
+
+
+
+        public static void ConfigureVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(opt =>
+            {
+                opt.ReportApiVersions = true;
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+
+                opt.ApiVersionReader = ApiVersionReader.Combine(
+                    new QueryStringApiVersionReader("api-version"),
+                    new HeaderApiVersionReader("api-version"),
+                    new UrlSegmentApiVersionReader());
+            }).AddApiExplorer(opt =>
+            {
+                opt.GroupNameFormat = "'v'V";
+                opt.SubstituteApiVersionInUrl = true;
+            });
+
+        }
+
+
+
+
+
 
         public static void ConfigureRedis(this IServiceCollection services,
         IConfiguration configuration)

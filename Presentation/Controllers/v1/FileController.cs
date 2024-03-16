@@ -1,4 +1,5 @@
-﻿using Entities.Enums;
+﻿using Asp.Versioning;
+using Entities.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Contracts;
@@ -6,8 +7,10 @@ using Services.Contracts;
 
 namespace Presentation.Controllers.v1
 {
+
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/files")]
+    [Route("api/v{v:apiVersion}/files")]
     public class FileController(IFileUploadService fileUploadService, IFileDownloadService fileDownloadService) : ControllerBase
     {
 

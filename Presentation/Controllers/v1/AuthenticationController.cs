@@ -1,4 +1,5 @@
-﻿using Entities.DataTransferObjects.BaseUser;
+﻿using Asp.Versioning;
+using Entities.DataTransferObjects.BaseUser;
 using Entities.Exceptions.BaseUser;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.ActionFilters;
@@ -6,8 +7,9 @@ using Services.Contracts;
 
 namespace Presentation.Controllers.v1
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/Authentication")]
+    [Route("api/v{v:apiVersion}/Authentication")]
     public class AuthenticationController(IServiceManager serviceManager) : ControllerBase
     {
 
