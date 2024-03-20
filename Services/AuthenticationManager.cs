@@ -65,10 +65,10 @@ namespace Services
 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
             return new TokenDto
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            };
+            (
+                AccessToken : accessToken,
+                RefreshToken : refreshToken
+            );
 
         }
 

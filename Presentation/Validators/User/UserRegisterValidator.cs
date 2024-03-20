@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Presentation.Validators.User
 {
-    public class UserRegisterValidator : AbstractValidator<UserDtoForRegister>
+    public sealed class UserRegisterValidator : AbstractValidator<UserDtoForRegister>
     {
 
         public UserRegisterValidator()

@@ -23,11 +23,11 @@ namespace XWebAPI.Tests.Systems.Services
                 UserName = "Test"
             };
 
-            BaseUserDtoForLogin mockUserLogin = new()
-            {
-                Username = "Test",
-                Password = "Test"
-            };
+            BaseUserDtoForLogin mockUserLogin = new
+            (
+                Username : "Test",
+                Password : "Test"
+            );
 
 
             var mockConfigService = new Mock<IConfiguration>();
@@ -90,11 +90,11 @@ namespace XWebAPI.Tests.Systems.Services
                 UserName = "Test"
             };
 
-            BaseUserDtoForLogin mockUserLogin = new()
-            {
-                Username = "Test",
-                Password = "Test"
-            };
+            BaseUserDtoForLogin mockUserLogin = new
+            (
+                Username : "Test",
+                Password : "Test"
+            );
 
 
             var mockConfigService = new Mock<IConfiguration>();

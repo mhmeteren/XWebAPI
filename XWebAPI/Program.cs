@@ -57,7 +57,6 @@ builder.Services.ConfigureRepositoryManager();
 builder.Services.ConfigureServiceManager();
 builder.Services.ConfigureLoggerService();
 builder.Services.ConfigureHelperServices();
-builder.Services.ConfigureActionFilters();
 builder.Services.ConfigureFileMangers(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.ConfigureRedis(builder.Configuration);

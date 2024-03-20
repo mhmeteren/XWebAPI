@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Presentation.ActionFilters;
 using Repositories.Contracts;
 using Repositories.EFCore;
 using Services;
@@ -37,11 +36,6 @@ namespace XWebAPI.Extensions
         public static void ConfigureHelperServices(this IServiceCollection services)
         {
             services.AddSingleton<IValidatorService, ValidatorManager>();
-        }
-
-        public static void ConfigureActionFilters(this IServiceCollection services)
-        {
-            services.AddScoped<ValidationFilterAttribute>();
         }
 
 

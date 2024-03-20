@@ -5,7 +5,7 @@ using FluentValidation;
 
 namespace Presentation.Validators.User
 {
-    public class UserAccountUpdateValidator : AbstractValidator<UserDtoForAccountUpdate>
+    public sealed class UserAccountUpdateValidator : AbstractValidator<UserDtoForAccountUpdate>
     {
         public UserAccountUpdateValidator()
         {
