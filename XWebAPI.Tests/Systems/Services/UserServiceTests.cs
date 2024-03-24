@@ -44,6 +44,7 @@ namespace XWebAPI.Tests.Systems.Services
 
             //Assert
             await act.Should().ThrowAsync<UserInvalidValueBadRequestException>();
+            mockValidatorservice.Verify(i => i.IsValidUsername(invalidUsername), Times.Once);
         }
 
 
@@ -76,7 +77,7 @@ namespace XWebAPI.Tests.Systems.Services
 
             //Assert
             await act.Should().ThrowAsync<UserNotFoundException>();
-
+            mockValidatorservice.Verify(i => i.IsValidUsername(nonExistentUsername), Times.Once);
         }
 
 
@@ -123,6 +124,8 @@ namespace XWebAPI.Tests.Systems.Services
             result.Should().NotBeNull();
             result.Should().BeOfType<UserProfileDto>();
             result.UserName.Should().Be(existentUsername);
+            mockValidatorservice.Verify(i => i.IsValidUsername(existentUsername), Times.Once);
+
         }
 
 
@@ -231,6 +234,7 @@ namespace XWebAPI.Tests.Systems.Services
 
             //Assert
             result.Should().Be(IdentityResult.Success);
+            mockValidatorservice.Verify(i => i.IsValidUsername(validUsername), Times.Once);
 
         }
 
@@ -297,6 +301,7 @@ namespace XWebAPI.Tests.Systems.Services
 
             //Assert
             result.Should().Be(identityFailed);
+            mockValidatorservice.Verify(i => i.IsValidUsername(validUsername), Times.Once);
 
         }
 
@@ -335,6 +340,7 @@ namespace XWebAPI.Tests.Systems.Services
 
             //Assert
             await act.Should().ThrowAsync<UserNotFoundException>();
+            mockValidatorservice.Verify(i => i.IsValidUsername(nonExistentUsername), Times.Once);
 
         }
 

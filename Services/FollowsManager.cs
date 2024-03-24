@@ -52,7 +52,7 @@ namespace Services
         {
             var user = await _userService.GetUserByIdentityNameCheckAndExistsAsync(username);
 
-            if (!username.Equals(loggedInUsername))
+            if (!user.UserName.Equals(loggedInUsername))
             {
                 var loggedInUser = await _userService.GetUserByIdentityNameCheckAndExistsAsync(loggedInUsername);
 
@@ -108,9 +108,7 @@ namespace Services
             if (followerUser.Id.Equals(followingUserId))
                 throw new FollowGeneralBadRequestException();
 
-            var followingUser = await _userService.GetUserByIdCheckAndExistsAsync(followingUserId);
-
-            var follow = await CheckFollowerAsync(followerUser.Id, followingUser.Id);
+            var follow = await CheckFollowerAsync(followerUser.Id, followingUserId);
 
             _manager.Follows.UnFollowUser(follow);
             await _manager.SaveAsync();
@@ -122,9 +120,7 @@ namespace Services
             if (mainUser.Id.Equals(followerId))
                 throw new FollowGeneralBadRequestException();
 
-            var followerUser = await _userService.GetUserByIdCheckAndExistsAsync(followerId);
-
-            var follow = await CheckFollowerAsync(followerUser.Id, mainUser.Id);
+            var follow = await CheckFollowerAsync(followerId, mainUser.Id);
 
             _manager.Follows.UnFollowUser(follow);
             await _manager.SaveAsync();

@@ -6,8 +6,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Entities.DataTransferObjects.User;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using Entities.Exceptions.BaseUser;
 using XWebAPI.Tests.Fixtures;
 using Entities.DataTransferObjects.Follower;
@@ -88,14 +86,16 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         public async Task GetUserByUsername_WithValidAndExistentUsername_ReturnUserDto()
         {
             //Arrange
-            UserProfileDto userDto = new()
-            {
-                UserName = "UserName",
-                FullName = "FullName",
-                About = "test",
-                BackgroundImageUrl = "/image",
-                ProfileImageUrl = "/image"
-            };
+            UserProfileDto userDto = new(
+                Id:"Id",
+                UserName: "UserName",
+                FullName: "FullName",
+                About: "test",
+                BackgroundImageUrl: "/image",
+                ProfileImageUrl : "/image",
+                Location: "",
+                IsPrivateAccount: true
+            );
 
             var mockService = new Mock<IServiceManager>();
             mockService.Setup(s => s.UserService.GetUserProfileByUsernameAsync(It.IsAny<string>()))

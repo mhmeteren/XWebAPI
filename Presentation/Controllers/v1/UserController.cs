@@ -19,11 +19,14 @@ namespace Presentation.Controllers.v1
         readonly private IServiceManager _serviceManager = serviceManager;
 
 
+        [Authorize(Roles = Roles.User)]
         [HttpGet("{Username}")]
         public async Task<IActionResult> GetUserByUsername([FromRoute] string Username)
         {
             return Ok(await _serviceManager.UserService.GetUserProfileByUsernameAsync(Username));
         }
+
+
 
 
         [Authorize(Roles = Roles.User)]

@@ -35,7 +35,7 @@ namespace Repositories.EFCore
         }
 
 
-        public async Task<Follows> CheckUserFollowingAsync(string followerId, string followingId, bool trackChanges) =>
+        public async Task<Follows?> CheckUserFollowingAsync(string followerId, string followingId, bool trackChanges) =>
             await FindByCondition(f => f.FollowerId.Equals(followerId) && f.FollowingId.Equals(followingId), trackChanges)
                 .SingleOrDefaultAsync();
 

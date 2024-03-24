@@ -2,6 +2,7 @@
 using Entities.Exceptions.BaseUser;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Presentation.Controllers.v1;
 using Presentation.Validators.Authentication;
@@ -134,7 +135,33 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
 
 
         [Fact]
-        public async Task Refresh_WithInvalidUser_ThrowException()
+        public async Task Refresh_WithInvalidTokenDto_ThrowException()
+        {
+            //Arrange
+            TokenDto tokenDto = new(
+                AccessToken: "testAccessToken",
+                RefreshToken: "testRefreshToken"
+            );
+
+
+
+            var mockServiceManager = new Mock<IServiceManager>();
+            mockServiceManager.Setup(s => s.AuthenticationService.RefreshToken(tokenDto))
+                .ThrowsAsync(new SecurityTokenException());
+
+            var mockAuthController = new AuthenticationController(mockServiceManager.Object);
+            var validator = new TokenRefreshValidator();
+
+
+            //Act
+            Func<Task> act = async () => await mockAuthController.Refresh(tokenDto, validator);
+
+            //Assert
+            await act.Should().ThrowAsync<SecurityTokenException>();
+        }
+
+        [Fact]
+        public async Task Refresh_WithInvalidToken_ThrowException()
         {
             //Arrange
             TokenDto tokenDto = new(
@@ -160,9 +187,8 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
         }
 
 
-
         [Fact]
-        public async Task Refresh_WithValidUser_ReturnTokenObject()
+        public async Task Refresh_WithValidTokenDto_ReturnTokenObject()
         {
             //Arrange
             TokenDto requestTokenDto = new(
