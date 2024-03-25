@@ -30,6 +30,11 @@ namespace XWebAPI.Tests.Systems.Repositories
             // Assert
             result.Should().BeOfType<PagedList<Follows>>();
             result.Count.Should().Be(followsCount);
+
+            result.MetaData.PageSize.Should().Be(parameters.PageSize);
+            result.MetaData.CurrentPage.Should().Be(parameters.PageNumber);
+            result.MetaData.TotalCount.Should().Be(followsCount);
+
             result.ForEach(i => i.FollowingId.Should().Be(userId));
             result.ForEach(i => i.RequestStatus.Should().BeTrue());
 
@@ -57,6 +62,11 @@ namespace XWebAPI.Tests.Systems.Repositories
             // Assert
             result.Should().BeOfType<PagedList<Follows>>();
             result.Count.Should().Be(followingCount);
+
+            result.MetaData.PageSize.Should().Be(parameters.PageSize);
+            result.MetaData.CurrentPage.Should().Be(parameters.PageNumber);
+            result.MetaData.TotalCount.Should().Be(followingCount);
+
             result.ForEach(i => i.FollowerId.Should().Be(userId));
             result.ForEach(i => i.RequestStatus.Should().BeTrue());
 
@@ -88,7 +98,7 @@ namespace XWebAPI.Tests.Systems.Repositories
 
 
         [Fact]
-        public async Task CheckUserFollowingAsync_ShouldReturnDefaultFollows()
+        public async Task CheckUserFollowingAsync_ShouldReturnNullFollows()
         {
             // Arrange
             string userId = "userId";
@@ -135,11 +145,7 @@ namespace XWebAPI.Tests.Systems.Repositories
 
             // Assert
             dbContext.Follows.Count().Should().Be(followsCount + 1);
-            dbContext.Follows.Should().Contain(f =>
-                f.FollowerId == createFollow.FollowerId &&
-                f.FollowingId == createFollow.FollowingId &&
-                f.RequestStatus == createFollow.RequestStatus &&
-                f.CreateDate == createFollow.CreateDate);
+            dbContext.Follows.Should().Contain(createFollow);
 
         }
 
@@ -192,7 +198,7 @@ namespace XWebAPI.Tests.Systems.Repositories
 
 
         [Fact]
-        public async Task UnFollowUser_ShouldBeDeleteFollow1()
+        public async Task UnFollowUser_WithNonExistsFollows_ThrowException()
         {
             // Arrange
             string userId = "userId";
@@ -216,6 +222,7 @@ namespace XWebAPI.Tests.Systems.Repositories
             };
 
             // Assert
+            dbContext.Follows.Should().NotContain(nonExistsFollowing);
             act.Should().Throw<Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException>();
         }
 
