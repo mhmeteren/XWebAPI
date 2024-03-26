@@ -1,28 +1,32 @@
-﻿using Entities.DataTransferObjects.User;
+﻿using Asp.Versioning;
+using Entities.DataTransferObjects.User;
 using Entities.RequestFeatures;
 using Entities.UtilityClasses;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.ActionFilters;
 using Services.Contracts;
 
 
 namespace Presentation.Controllers.v1
 {
-
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/User")]
+    [Route("api/v{v:apiVersion}/User")]
     public class UserController(IServiceManager serviceManager) : ControllerBase
     {
         readonly private IServiceManager _serviceManager = serviceManager;
 
 
+        [Authorize(Roles = Roles.User)]
         [HttpGet("{Username}")]
         public async Task<IActionResult> GetUserByUsername([FromRoute] string Username)
         {
             return Ok(await _serviceManager.UserService.GetUserProfileByUsernameAsync(Username));
         }
+
+
 
 
         [Authorize(Roles = Roles.User)]
@@ -50,9 +54,17 @@ namespace Presentation.Controllers.v1
 
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> RegisterUser([FromBody] UserDtoForRegister userDto)
+        public async Task<IActionResult> RegisterUser([FromBody] UserDtoForRegister userDto,
+            [FromServices] IValidator<UserDtoForRegister> validator)
         {
+
+            var validatorResult = validator.Validate(userDto);
+            if (!validatorResult.IsValid)
+            {
+                validatorResult.Errors.ForEach(error => ModelState.AddModelError(error.PropertyName, error.ErrorMessage));
+                return BadRequest(ModelState);
+            }
+
             var result = await _serviceManager.UserService.ReqisterUserAsync(userDto);
             if (!result.Succeeded)
             {
@@ -65,7 +77,7 @@ namespace Presentation.Controllers.v1
 
 
         [Authorize(Roles = Roles.User)]
-        [HttpPut("ImageUpdate/Profile")]
+        [HttpPut("Update/ProfileImage")]
         public async Task<IActionResult> UserUpdateProfileImage(IFormFile profileImage)
         {
             await _serviceManager
@@ -78,7 +90,7 @@ namespace Presentation.Controllers.v1
 
 
         [Authorize(Roles = Roles.User)]
-        [HttpPut("ImageUpdate/Background")]
+        [HttpPut("Update/BackgroundImage")]
         public async Task<IActionResult> UserUpdateBackgroundImage(IFormFile backgroundImage)
         {
             await _serviceManager
@@ -92,9 +104,18 @@ namespace Presentation.Controllers.v1
 
         [Authorize(Roles = Roles.User)]
         [HttpPut("Update/Profile")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> UserUpdateProfile([FromBody] UserDtoForAccountUpdate profileDto)
+        public async Task<IActionResult> UserUpdateProfile([FromBody] UserDtoForAccountUpdate profileDto,
+            [FromServices] IValidator<UserDtoForAccountUpdate> validator)
         {
+
+            var validatorResult = validator.Validate(profileDto);
+            if (!validatorResult.IsValid)
+            {
+                validatorResult.Errors.ForEach(error => ModelState.AddModelError(error.PropertyName, error.ErrorMessage));
+                return BadRequest(ModelState);
+            }
+
+
             var result = await _serviceManager
                   .UserService
                   .UpdateProfile(User.Identity.Name, profileDto);

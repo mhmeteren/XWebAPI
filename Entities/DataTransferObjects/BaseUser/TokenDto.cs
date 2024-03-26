@@ -1,10 +1,7 @@
 ﻿
 namespace Entities.DataTransferObjects.BaseUser
 {
-    public class TokenDto
+    public record TokenDto(string? AccessToken, string? RefreshToken)
     {
-        public String AccessToken { get; init; }
-        public String RefreshToken { get; init; }
-
     }
 }

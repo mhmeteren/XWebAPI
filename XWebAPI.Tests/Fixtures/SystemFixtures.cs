@@ -36,7 +36,7 @@ namespace XWebAPI.Tests.Fixtures
             };
         }
 
-        public static ControllerContext ControllerContextConfigure(string Username)
+        public static ControllerContext ControllerContextConfigure(string loggedInUsername)
         {
 
             var mockHttpContext = new Mock<HttpContext>();
@@ -47,7 +47,7 @@ namespace XWebAPI.Tests.Fixtures
 
             var fakeClaims = new List<Claim>
             {
-                new(ClaimTypes.Name, Username),
+                new(ClaimTypes.Name, loggedInUsername),
             };
 
             var identity = new ClaimsIdentity(fakeClaims, It.IsAny<string>());

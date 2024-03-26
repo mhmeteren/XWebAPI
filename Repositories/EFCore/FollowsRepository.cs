@@ -14,7 +14,7 @@ namespace Repositories.EFCore
         {
            var followers = await FindAll(trackChanges)
                 .Include(f => f.FollowerUser)
-                .Where(f => f.FollowingId.Equals(userId))
+                .Where(f => f.FollowingId.Equals(userId) && f.RequestStatus)
                 .OrderByDescending(f => f.CreateDate)
                 .ToListAsync();
 
@@ -26,7 +26,7 @@ namespace Repositories.EFCore
         {
             var followers = await FindAll(trackChanges)
                  .Include(f => f.FollowingUser)
-                 .Where(f => f.FollowerId.Equals(userId))
+                 .Where(f => f.FollowerId.Equals(userId) && f.RequestStatus)
                  .OrderByDescending(f => f.CreateDate)
                  .ToListAsync();
 
@@ -35,7 +35,7 @@ namespace Repositories.EFCore
         }
 
 
-        public async Task<Follows> CheckUserFollowingAsync(string followerId, string followingId, bool trackChanges) =>
+        public async Task<Follows?> CheckUserFollowingAsync(string followerId, string followingId, bool trackChanges) =>
             await FindByCondition(f => f.FollowerId.Equals(followerId) && f.FollowingId.Equals(followingId), trackChanges)
                 .SingleOrDefaultAsync();
 

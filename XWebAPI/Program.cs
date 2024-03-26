@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Services.Contracts;
@@ -47,7 +49,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+builder.Services.AddValidatorsFromAssemblyContaining<Presentation.AssemblyReference>();
 
 //Extensions
 builder.Services.ConfigureSqlContext(builder.Configuration);
@@ -55,10 +57,10 @@ builder.Services.ConfigureRepositoryManager();
 builder.Services.ConfigureServiceManager();
 builder.Services.ConfigureLoggerService();
 builder.Services.ConfigureHelperServices();
-builder.Services.ConfigureActionFilters();
 builder.Services.ConfigureFileMangers(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.ConfigureRedis(builder.Configuration);
+builder.Services.ConfigureVersioning();
 
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);

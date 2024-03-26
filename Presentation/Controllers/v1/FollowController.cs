@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Entities.UtilityClasses;
+using Asp.Versioning;
 
 
 namespace Presentation.Controllers.v1
 {
 
-
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/Follow")]
+    [Route("api/v{v:apiVersion}/Follow")]
     public class FollowController(IServiceManager serviceManager) : ControllerBase
     {
         readonly private IServiceManager _serviceManager = serviceManager;

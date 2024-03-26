@@ -1,13 +1,15 @@
-﻿using Entities.DataTransferObjects.BaseUser;
+﻿using Asp.Versioning;
+using Entities.DataTransferObjects.BaseUser;
 using Entities.Exceptions.BaseUser;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.ActionFilters;
 using Services.Contracts;
 
 namespace Presentation.Controllers.v1
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/v1/Authentication")]
+    [Route("api/v{v:apiVersion}/Authentication")]
     public class AuthenticationController(IServiceManager serviceManager) : ControllerBase
     {
 
@@ -16,9 +18,16 @@ namespace Presentation.Controllers.v1
 
 
         [HttpPost("login")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> LoginUser([FromBody] BaseUserDtoForLogin baseUserDtoForLogin)
+        public async Task<IActionResult> LoginUser([FromBody] BaseUserDtoForLogin baseUserDtoForLogin,
+            [FromServices] IValidator<BaseUserDtoForLogin> validator)
         {
+            var validatorResult = validator.Validate(baseUserDtoForLogin);
+            if (!validatorResult.IsValid)
+            {
+                validatorResult.Errors.ForEach(error => ModelState.AddModelError(error.PropertyName, error.ErrorMessage));
+                return BadRequest(ModelState);
+            }
+
             if (!await _serviceManager.AuthenticationService.ValidateUser(baseUserDtoForLogin))
                 throw new BaseUserLoginBadRequestException();
 
@@ -30,9 +39,17 @@ namespace Presentation.Controllers.v1
 
 
         [HttpPost("refresh")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)
+        public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto,
+            [FromServices] IValidator<TokenDto> validator)
         {
+
+            var validatorResult = validator.Validate(tokenDto);
+            if (!validatorResult.IsValid)
+            {
+                validatorResult.Errors.ForEach(error => ModelState.AddModelError(error.PropertyName, error.ErrorMessage));
+                return BadRequest(ModelState);
+            }
+
             var tokenDtoToReturn = await _serviceManager
                 .AuthenticationService
                 .RefreshToken(tokenDto);

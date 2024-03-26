@@ -15,18 +15,5 @@ namespace Services.Contracts
 
 
         Task<IdentityResult> ConfirmEmail(string Token, string Id);
-        //Task<IdentityResult> UserEmailUpdate(string currentEmail, BaseUserDtoForEmailUpdate userDto);
-
-        //Task<IdentityResult> UserPasswordUpdate(string currentEmail, BaseUserDtoForPasswordUpdate userDto);
-
-
-        //Task UserForgotPassword(BaseUserDtoForForgotPassword baseUserDto);
-
-        //Task<IdentityResult> UserResetPassword(BaseUserDtoForResetPassword baseUserDto);
-
-
-        //Task UserProfileImageUpdate(IFormFile ProfileImage, BaseUser user);
-
-        //Task<bool> UserLogout(BaseUser user);
     }
 }
