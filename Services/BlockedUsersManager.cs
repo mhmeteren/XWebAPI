@@ -28,7 +28,7 @@ namespace Services
             return new PagedResponse<BlockedUserDto>(
                 items: _mapper.Map<IEnumerable<BlockedUserDto>>(blockedUsersWithMetaData),
                 metaData: blockedUsersWithMetaData.MetaData);
-                
+    
         }
 
         public async Task BlockedUser(string userIdentityName, string blockedUserId)
@@ -81,6 +81,7 @@ namespace Services
             _manager.BlockedUsers.UnBlockedUser(await CheckUserBlockedAsync(blockerUser.Id, blockedUser.Id, false));
             await _manager.SaveAsync();
         }
+
 
         public async Task<bool> IsBlocked(string blockerUserId, string blockedUserId)
         {
