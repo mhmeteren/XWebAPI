@@ -1,14 +1,12 @@
-﻿using Entities.Enums;
-using Microsoft.AspNetCore.Http;
-
+﻿using Entities.UtilityClasses.FileTransactions;
 
 namespace Services.Contracts
 {
     public interface IFileUploadService
     {
 
-        Task<string> Upload(IFormFile File, FolderPaths filePath, string? pastFileName);
-        Task Delete(string filePath, string fileName);
+        Task<string> Upload(FileUpload fileUpload);
+        Task Delete(string path);
 
     }
 }

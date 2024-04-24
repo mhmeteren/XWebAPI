@@ -3,7 +3,7 @@
     public class FileNameNotFoundException : NotFoundException
     {
         public FileNameNotFoundException()
-            : base("Dosya bulunamadı.")
+            : base("File not found.")
         {
         }
     }

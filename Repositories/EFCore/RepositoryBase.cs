@@ -11,7 +11,11 @@ namespace Repositories.EFCore
 
         public void Create(T entity) => _context.Set<T>().Add(entity);
 
+        public void CreateRange(IEnumerable<T> entities) => _context.Set<T>().AddRange(entities);
+
         public void Delete(T entity) => _context?.Set<T>().Remove(entity);
+
+        public void DeleteRange(IEnumerable<T> entities) => _context.Set<T>().RemoveRange(entities);
 
         public IQueryable<T> FindAll(bool trackChanges) =>
             !trackChanges ?

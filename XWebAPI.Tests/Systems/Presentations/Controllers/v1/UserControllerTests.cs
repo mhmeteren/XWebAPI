@@ -88,13 +88,14 @@ namespace XWebAPI.Tests.Systems.Presentations.Controllers.v1
             //Arrange
             UserProfileDto userDto = new(
                 Id:"Id",
-                UserName: "UserName",
                 FullName: "FullName",
-                About: "test",
-                BackgroundImageUrl: "/image",
+                UserName: "UserName",
                 ProfileImageUrl : "/image",
+                BackgroundImageUrl: "/image",
+                About: "test",
                 Location: "",
-                IsPrivateAccount: true
+                IsPrivateAccount: true,
+                IsVerifiedAccount: false
             );
 
             var mockService = new Mock<IServiceManager>();

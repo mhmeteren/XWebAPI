@@ -1,6 +1,7 @@
 ﻿using Entities.Enums;
 using Entities.Exceptions.File;
 using Entities.Exceptions.File.Minio;
+using Entities.UtilityClasses.FileTransactions;
 using Entities.UtilityClasses.Minio;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -28,17 +29,15 @@ namespace Services
 
 
 
-        public async Task<string> Upload(IFormFile File, FolderPaths filePath, string? pastFileName)
+        public async Task<string> Upload(FileUpload fileUpload)
         {
-            if (!IsValidFileExtension(File.FileName)
-                || !IsValidFileSize(File.Length))
+            if (!IsValidFileExtension(fileUpload.File.FileName)
+                || !IsValidFileSize(fileUpload.File.Length))
                 throw new FileBadRequestException();
 
 
 
-
-            string createFileName = String.Concat(Guid.NewGuid().ToString(), Path.GetExtension(File.FileName));
-            string fileNameWithPathForMinio = String.Concat(filePath.GetDescription(), createFileName);
+            string fileNameWithPathForMinio = String.Concat(fileUpload.FilePath.GetDescription(), fileUpload.FileName);
 
             try
             {
@@ -51,22 +50,22 @@ namespace Services
                 
 
 
-                if (pastFileName is not null)
+                if (fileUpload.PastFileName is not null)
                 {
-                    await RemoveFile(minio, minioConfig.Bucket, String.Concat(filePath.GetDescription(), pastFileName));
+                    await RemoveFile(minio, minioConfig.Bucket, String.Concat(fileUpload.FilePath.GetDescription(), fileUpload.PastFileName));
                 }
 
 
 
-                FileUpload(minio, File, minioConfig.Bucket, fileNameWithPathForMinio).Wait();
+                FileUpload(minio, fileUpload.File, minioConfig.Bucket, fileNameWithPathForMinio).Wait();
             }
             catch (MinioException ex)
             {
-                _logger.LogError($"Method: {nameof(Upload)}; FileWithPathForMinio: {fileNameWithPathForMinio}; An error occurred while uploading the image, {ex}");
+                _logger.LogError($"Method: {nameof(Upload)}; FileWithPathForMinio: {fileNameWithPathForMinio}; An error occurred while uploading the media, {ex}");
                 throw new MinioGeneralBadRequestException();
             }
 
-            return String.Concat("/", filePath.ToString(), "/", createFileName);
+            return String.Concat("/", fileUpload.FilePath.ToString(), "/", fileUpload.FileName);
         }
 
 
@@ -103,16 +102,16 @@ namespace Services
             }
             catch (MinioException ex)
             {
-                _logger.LogError($"Method: {nameof(FileUpload)}; FileWithPath: {fileNameWithPath}; An error occurred while uploading the image, {ex}");
+                _logger.LogError($"Method: {nameof(FileUpload)}; FileWithPath: {fileNameWithPath}; An error occurred while uploading the media, {ex}");
             }
         }
 
 
 
 
-        public async Task Delete(string filePath, string fileName)
+        public async Task Delete(string path)
         {
-            if (fileName is not null)
+            if (path is not null)
             {
                 try
                 {
@@ -125,11 +124,11 @@ namespace Services
                                     .Build();
 
 
-                    await RemoveFile(minio, minioConfig.Bucket, String.Concat(filePath, fileName));
+                    await RemoveFile(minio, minioConfig.Bucket, path);
                 }
                 catch (MinioException ex)
                 {
-                    _logger.LogError($"Method: {nameof(Delete)}; FileWithPath: {filePath}; An error occurred while deleting the image, {ex}");
+                    _logger.LogError($"Method: {nameof(Delete)}; FileWithPath: {path}; An error occurred while deleting the media, {ex}");
                     throw new MinioGeneralBadRequestException();
                 }
             }
@@ -149,7 +148,7 @@ namespace Services
             }
             catch (MinioException ex)
             {
-                _logger.LogError($"Method: {nameof(RemoveFile)}; FileWithPath: {fileWithPath}; An error occurred while deleting the image, {ex}");
+                _logger.LogError($"Method: {nameof(RemoveFile)}; FileWithPath: {fileWithPath}; An error occurred while deleting the media, {ex}");
                 throw new MinioGeneralBadRequestException();
             }
 

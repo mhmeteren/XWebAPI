@@ -13,6 +13,8 @@ namespace Entities.DataTransferObjects.User
         public string? PhoneNumber { get; init; }
         public string? Gender { get; init; }
         public bool PhoneNumberConfirmed { get; init; }
+        public bool IsVerifiedAccount { get; init; }
+        public bool IsPrivateAccount { get; init; }
     }
 
 }

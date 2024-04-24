@@ -9,7 +9,8 @@ namespace Entities.DataTransferObjects.User
         string? BackgroundImageUrl,
         string? About,
         string? Location,
-        bool IsPrivateAccount)
+        bool IsPrivateAccount,
+        bool IsVerifiedAccount)
     {
 
     }

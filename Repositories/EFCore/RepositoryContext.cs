@@ -12,6 +12,10 @@ namespace Repositories.EFCore
         public DbSet<Users> Users { get; set; }
         public DbSet<Follows> Follows { get; set; }
         public DbSet<BlockedUsers> BlockedUsers { get; set; }
+        public DbSet<Tweets> Tweets { get; set; }
+        public DbSet<TweetMedias> TweetMedias { get; set; }
+
+        public DbSet<TweetLikes> TweetLikes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

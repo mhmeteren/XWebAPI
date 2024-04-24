@@ -7,6 +7,7 @@ using Entities.Exceptions.GeneralExceptions;
 using Entities.Exceptions.User;
 using Entities.Models;
 using Entities.UtilityClasses;
+using Entities.UtilityClasses.FileTransactions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Repositories.Contracts;
@@ -63,10 +64,13 @@ namespace Services
         {
             Users user = await GetUserByUsernameAsync(Username);
 
+            FileUpload fileUpload = new(
+                file: profileImage,
+                filePath: FolderPaths.UsersBackgroundImages,
+                pastFileName: ImageUrlToImageName(user.BackgroundImageUrl));
+
             user.BackgroundImageUrl = await _fileUploadService
-                .Upload(profileImage,
-                FolderPaths.UsersBackgroundImages,
-                ImageUrlToImageName(user.BackgroundImageUrl));
+                .Upload(fileUpload);
 
             var result = await _baseUserManager.UpdateAsync(user);
 
@@ -80,11 +84,13 @@ namespace Services
         {
 
             Users user = await GetUserByUsernameAsync(Username);
+            FileUpload fileUpload = new(
+                file: profileImage,
+                filePath: FolderPaths.UsersProfileImages,
+                pastFileName: ImageUrlToImageName(user.ProfileImageUrl));
 
             user.ProfileImageUrl = await _fileUploadService
-                .Upload(profileImage,
-                FolderPaths.UsersProfileImages,
-                ImageUrlToImageName(user.ProfileImageUrl));
+                .Upload(fileUpload);
 
             var result = await _baseUserManager.UpdateAsync(user);
 

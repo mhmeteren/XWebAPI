@@ -10,10 +10,7 @@ namespace Entities.Enums
         [Description("/Users/ProfileImages/")]
         UsersProfileImages,
 
-        [Description("/Tweets/Images/")]
-        TweetsImages,
-
-        [Description("/Tweets/Videos/")]
-        TweetsVideos
+        [Description("/Tweets/")]
+        Tweets
     }
 }
