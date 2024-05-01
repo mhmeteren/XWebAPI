@@ -42,7 +42,7 @@ namespace Services
             _followerService = new(() => new FollowsManager(repositoryManager, mapper, _userService.Value, _blockedUsersService.Value));
 
             _tweetMediasService = new(() => new TweetMediasManager(repositoryManager, fileUploadService));
-            _tweetLikesService = new(() => new TweetLikesManager(repositoryManager, _userService.Value));
+            _tweetLikesService = new(() => new TweetLikesManager(repositoryManager, mapper));
             _tweetsService = new(() => new TweetsManager(repositoryManager, mapper, _userService.Value, _tweetMediasService.Value, _tweetLikesService.Value, _followerService.Value));
 
         }

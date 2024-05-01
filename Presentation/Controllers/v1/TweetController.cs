@@ -1,5 +1,7 @@
 ﻿using Asp.Versioning;
 using Entities.DataTransferObjects.Tweets;
+using Entities.Enums;
+using Entities.RequestFeatures;
 using Entities.UtilityClasses;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -24,6 +26,44 @@ namespace Presentation.Controllers.v1
             return Ok(await _serviceManager.TweetsService.GetTweetById(tweetId, User.Identity.Name, false));
         }
 
+
+        [Authorize(Roles = Roles.User)]
+        [HttpGet("{tweetId}/Replies")]
+        public async Task<IActionResult> GetRepliesByTweet([FromRoute] string tweetId, [FromQuery] TweetParameters parameters)
+        {
+            var pagedResponse = await _serviceManager.TweetsService.GetAllTweetsByTweetAsync(tweetId, User.Identity.Name, TweetType.Replies, parameters, false);
+            Response.Headers["X-Pagination"] = pagedResponse.MetaData.ToString();
+            return Ok(pagedResponse.Items);
+        }
+
+
+        [Authorize(Roles = Roles.User)]
+        [HttpGet("{tweetId}/Quotes")]
+        public async Task<IActionResult> GetQuotesByTweet([FromRoute] string tweetId, [FromQuery] TweetParameters parameters)
+        {
+            var pagedResponse = await _serviceManager.TweetsService.GetAllTweetsByTweetAsync(tweetId, User.Identity.Name, TweetType.Quotes, parameters, false);
+            Response.Headers["X-Pagination"] = pagedResponse.MetaData.ToString();
+            return Ok(pagedResponse.Items);
+        }
+
+
+        [Authorize(Roles = Roles.User)]
+        [HttpGet("{tweetId}/Retweets")]
+        public async Task<IActionResult> GetRetweetsByTweet([FromRoute] string tweetId, [FromQuery] TweetParameters parameters)
+        {
+            var pagedResponse = await _serviceManager.TweetsService.GetAllRetweetersByTweetAsync(tweetId, User.Identity.Name, parameters, false);
+            Response.Headers["X-Pagination"] = pagedResponse.MetaData.ToString();
+            return Ok(pagedResponse.Items);
+        }
+
+        [Authorize(Roles = Roles.User)]
+        [HttpGet("{tweetId}/Likes")]
+        public async Task<IActionResult> GetLikesByTweet([FromRoute] string tweetId, [FromQuery] TweetLikesParameters parameters)
+        {
+            var pagedResponse = await _serviceManager.TweetsService.GetAllLikeUsersByTweetAsync(tweetId, User.Identity.Name, parameters, false);
+            Response.Headers["X-Pagination"] = pagedResponse.MetaData.ToString();
+            return Ok(pagedResponse.Items);
+        }
 
 
 

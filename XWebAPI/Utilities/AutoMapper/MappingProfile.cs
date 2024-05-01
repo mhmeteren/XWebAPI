@@ -37,13 +37,19 @@ namespace XWebAPI.Utilities.AutoMapper
             CreateMap<TweetDtoForEdit, Tweets>();
             CreateMap<Tweets, TweetDtoForDetail>()
                 .ForMember(dest => dest.MediaPaths, opt => opt.MapFrom(src => src.TweetMedias.Select(tm => tm.Id).ToList()));
+            
+            CreateMap<Tweets, UserDtoForTweets>()
+                .IncludeMembers(src => src.CreaterUser);
 
 
+            //TweetLikes
+            CreateMap<TweetLikes, TweetDtoForDetail>()
+                 .IncludeMembers(src => src.Tweets);
+
+            CreateMap<TweetLikes, UserDtoForTweets>()
+                 .IncludeMembers(src => src.User);
 
 
-
-            //TweetMedias
-  
         }
 
     }

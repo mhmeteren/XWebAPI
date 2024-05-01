@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using Entities.DataTransferObjects.Tweets;
+using Entities.DataTransferObjects.User;
 using Entities.Enums;
 using Entities.Exceptions.TweetMedias;
 using Entities.Exceptions.Tweets;
+using Entities.Exceptions.User;
 using Entities.Models;
+using Entities.RequestFeatures;
 using Repositories.Contracts;
 using Services.Contracts;
 
@@ -30,6 +33,92 @@ namespace Services
         protected Users? _createrUser;
         protected Users? _loggedInUser;
 
+
+        public async Task<PagedResponse<TweetDtoForDetail>> GetAllFollowingTweetsByUserAsync(string loggedInUsername, TweetParameters parameters, bool trackChanges)
+        {
+            _loggedInUser = await _userService.GetUserByIdentityNameCheckAndExistsAsync(loggedInUsername);
+
+            var followingIds = await _manager.Follows.GetAllFollowingIdsAsync(_loggedInUser.Id, trackChanges);
+            var tweetsWithMetaData = await _manager.Tweets.GetAllFollowingTweets(followingIds, parameters, trackChanges);
+
+            return new PagedResponse<TweetDtoForDetail>(
+                 items: _mapper.Map<IEnumerable<TweetDtoForDetail>>(tweetsWithMetaData),
+                 metaData: tweetsWithMetaData.MetaData);
+        }
+
+
+        public async Task<PagedResponse<TweetDtoForDetail>> GetAllTweetsByUserAsync(string username, string loggedInUsername, UserFeedType userFeedType, TweetParameters parameters, bool trackChanges)
+        {
+            if (await IsFeedsPermissionDenied(loggedInUsername, username))
+                throw new UserAccountIsPrivateBadRequestException();
+
+
+            var tweetsWithMetaData = userFeedType switch
+            {
+                UserFeedType.Tweets => await _manager.Tweets.GetAllTweetsByUserAsync(_createrUser.Id, parameters, trackChanges),
+                UserFeedType.RetweetsWithReplies => await _manager.Tweets.GetAllRetweetsWithRepliesByUserAsync(_createrUser.Id, parameters, trackChanges),
+                UserFeedType.Media => null,
+                UserFeedType.Likes => null,
+                _ => null
+            };
+
+
+            return new PagedResponse<TweetDtoForDetail>(
+               items: _mapper.Map<IEnumerable<TweetDtoForDetail>>(tweetsWithMetaData),
+               metaData: tweetsWithMetaData.MetaData);
+        }
+
+
+        public async Task<PagedResponse<TweetDtoForDetail>> GetAllTweetsByTweetAsync(string tweetId, string loggedInUsername, TweetType tweetType, TweetParameters parameters, bool trackChanges)
+        {
+            var tweet = await _manager.Tweets.GetTweetDetailbyId(tweetId, trackChanges) ?? throw new TweetsNotFoundException();
+
+            if (await IsPermissionDenied(loggedInUsername, tweet.CreaterUserId))
+                throw new TweetIsPrivateBadRequestException();
+
+            var tweetsWithMetaData = tweetType switch
+            {
+                TweetType.Replies => await _manager.Tweets.GetAllRepliesByTweetAsync(tweet.Id, parameters, trackChanges),
+                TweetType.Quotes => await _manager.Tweets.GetAllQuotesByTweetAsync(tweet.Id, parameters, trackChanges),
+            };
+
+
+            return new PagedResponse<TweetDtoForDetail>(
+              items: _mapper.Map<IEnumerable<TweetDtoForDetail>>(tweetsWithMetaData),
+              metaData: tweetsWithMetaData.MetaData);
+        }
+
+
+
+        public async Task<PagedResponse<UserDtoForTweets>> GetAllRetweetersByTweetAsync(string tweetId, string loggedInUsername, TweetParameters parameters, bool trackChanges)
+        {
+            var tweet = await _manager.Tweets.GetTweetDetailbyId(tweetId, trackChanges) ?? throw new TweetsNotFoundException();
+
+            if (await IsPermissionDenied(loggedInUsername, tweet.CreaterUserId))
+                throw new TweetIsPrivateBadRequestException();
+
+            var retweetersWithMetaData = await _manager.Tweets.GetAllRetweetersByTweetAsync(tweetId, parameters, trackChanges);
+            return new PagedResponse<UserDtoForTweets>(
+                items: _mapper.Map<IEnumerable<UserDtoForTweets>>(retweetersWithMetaData),
+                metaData: retweetersWithMetaData.MetaData);
+
+        }
+
+
+        public async Task<PagedResponse<UserDtoForTweets>> GetAllLikeUsersByTweetAsync(string tweetId, string loggedInUsername, TweetLikesParameters parameters, bool trackChanges)
+        {
+            var tweet = await _manager.Tweets.GetTweetDetailbyId(tweetId, trackChanges) ?? throw new TweetsNotFoundException();
+
+            if (await IsPermissionDenied(loggedInUsername, tweet.CreaterUserId))
+                throw new TweetIsPrivateBadRequestException();
+
+            return await _tweetLikesService.GetAllLikesByTweet(tweetId, parameters, trackChanges);
+        }
+
+
+
+
+
         public async Task CreateTweet(string loggedInUsername, TweetDtoForCreate tweetDto)
         {
             _loggedInUser = await _userService.GetUserByIdentityNameCheckAndExistsAsync(loggedInUsername);
@@ -49,6 +138,9 @@ namespace Services
 
                 if (tweet.IsRetweet)
                 {
+                    if (await IsAlreadyRetweeted(mainTweet.Id))
+                        throw new TweetIsAlreadyRetweetedBadRequestException();
+
                     mainTweet.ReTweetCount++;
                 }
                 else
@@ -72,6 +164,12 @@ namespace Services
             if (tweetDto.Medias?.Count > 0)
                 await _tweetMediasService.SaveMediasByTweet(tweet.Id, tweetDto.Medias);
         }
+
+        private async Task<bool> IsAlreadyRetweeted(string tweetId)
+        {
+            return await _manager.Tweets.GetRetweetbyMainTweetAndUser(tweetId, _loggedInUser.Id, false) != null;
+        }
+            
 
 
         private async Task<bool> CheckCommentWritePermissions(Tweets mainTweet)
@@ -142,6 +240,7 @@ namespace Services
 
 
 
+
         public async Task EditTweet(string tweetId, string loggedInUsername, TweetDtoForEdit tweetDto)
         {
             _loggedInUser = await _userService.GetUserByIdentityNameCheckAndExistsAsync(loggedInUsername);
@@ -197,18 +296,20 @@ namespace Services
 
 
 
+
+
         public async Task CreateTweetLike(string tweetId, string loggedInUsername)
         {
             var tweet = await GetTweetByIdCheckAndExits(tweetId, false);
             if (await IsPermissionDenied(loggedInUsername, tweet.CreaterUserId))
                 throw new TweetIsPrivateBadRequestException();
-
+            
             await _tweetLikesService.CreateLike(tweet.Id, _loggedInUser.Id);
 
             tweet.LikeCount++;
             _manager.Tweets.Update(tweet);
             await _manager.SaveAsync();
-
+            //[NOTE] Send Notification to Tweet Creater User
         }
 
         public async Task DeleteTweetLike(string tweetId, string loggedInUsername)
@@ -225,8 +326,22 @@ namespace Services
         }
 
 
+
+
+
         public async Task<Tweets> GetTweetByIdCheckAndExits(string tweetId, bool trackChanges) =>
              await _manager.Tweets.GetTweetbyId(tweetId, trackChanges) ?? throw new TweetsNotFoundException();
+
+
+
+        private async Task<bool> IsFeedsPermissionDenied(string loggedInUsername, string ownerUsername)
+        {
+            _loggedInUser = await _userService.GetUserByIdentityNameCheckAndExistsAsync(loggedInUsername);
+            _createrUser = _loggedInUser.UserName.Equals(ownerUsername) ?
+                _loggedInUser : await _userService.GetUserByIdentityNameCheckAndExistsAsync(ownerUsername);
+
+            return await IsTweetViewPermissionDenied();
+        }
 
 
         private async Task<bool> IsPermissionDenied(string loggedInUsername, string createrUserId)
@@ -244,6 +359,7 @@ namespace Services
                 && _createrUser.IsPrivateAccount
                 && !await _followsService.IsFollower(_loggedInUser.Id, _createrUser.Id));
         }
+
 
     }
 }

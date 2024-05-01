@@ -9,6 +9,13 @@ namespace Repositories.EFCore
     public class FollowsRepository(RepositoryContext context) : RepositoryBase<Follows>(context), IFollowsRepository
     {
 
+        public async Task<IEnumerable<string>> GetAllFollowingIdsAsync(string userId, bool trackChanges)
+        {
+            return await FindAll(trackChanges)
+                 .Where(f => f.FollowerId.Equals(userId) && f.RequestStatus)
+                 .Select(f => f.FollowingId)
+                 .ToListAsync();
+        }
 
         public async Task<PagedList<Follows>> GetAllFollowersAsync(string userId, FollowParameters parameters, bool trackChanges)
         {
@@ -21,6 +28,7 @@ namespace Repositories.EFCore
             return PagedList<Follows>
                 .ToPagedList(followers, parameters);
         }
+
 
         public async Task<PagedList<Follows>> GetAllFollowingsAsync(string userId, FollowParameters parameters, bool trackChanges)
         {

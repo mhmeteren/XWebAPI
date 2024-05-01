@@ -10,20 +10,79 @@ namespace Repositories.EFCore
     {
 
 
-        public async Task<PagedList<Tweets>> GetAllCommentTweetsByTweetAsync(string tweetId, TweetParameters parameters, bool trackChanges)
+        #region Main Feed
+        public async Task<PagedList<Tweets>> GetAllFollowingTweets(IEnumerable<string> followingUsers, TweetParameters parameters, bool trackChanges)
         {
             var tweets = await FindAll(trackChanges)
-                 .Where(f => f.MainTweetID != null && f.MainTweetID.Equals(tweetId)  && !f.IsRetweet && !f.IsDeleting)
+                 .Where(t => followingUsers.Contains(t.CreaterUserId)
+                 && !t.IsDeleting)
+                 .Include(f => f.CreaterUser)
+                 .Include(t => t.TweetMedias.Take(3))
                  .OrderByDescending(f => f.CreateDate)
                  .ToListAsync();
 
             return PagedList<Tweets>.ToPagedList(tweets, parameters);
         }
 
-        public async Task<PagedList<Tweets>> GetAllReTweetsAndCommentTweetsByUserAsync(string userId, TweetParameters parameters, bool trackChanges)
+        #endregion Main Feed
+
+
+
+        #region Feed by User
+        public async Task<PagedList<Tweets>> GetAllRepliesByTweetAsync(string tweetId, TweetParameters parameters, bool trackChanges)
+        {
+            var tweets = await FindAll(trackChanges)
+                 .Where(f => f.MainTweetID != null 
+                 && f.MainTweetID.Equals(tweetId)  
+                 && !f.IsRetweet 
+                 && !f.IsDeleting)
+                 .Include(f => f.CreaterUser)
+                 .Include(t => t.TweetMedias.Take(3))
+                 .OrderByDescending(f => f.CreateDate)
+                 .ToListAsync();
+
+            return PagedList<Tweets>.ToPagedList(tweets, parameters);
+        }
+
+        public async Task<PagedList<Tweets>> GetAllQuotesByTweetAsync(string tweetId, TweetParameters parameters, bool trackChanges)
+        {
+            var tweets = await FindAll(trackChanges)
+                 .Where(f => f.MainTweetID != null 
+                 && f.MainTweetID.Equals(tweetId) 
+                 && f.IsRetweet 
+                 && f.Content != null 
+                 && !f.IsDeleting)
+                 .Include(f => f.CreaterUser)
+                 .Include(t => t.TweetMedias.Take(3))
+                 .OrderByDescending(f => f.CreateDate)
+                 .ToListAsync();
+
+            return PagedList<Tweets>.ToPagedList(tweets, parameters);
+        }
+
+
+        public async Task<PagedList<Tweets>> GetAllRetweetersByTweetAsync(string tweetId, TweetParameters parameters, bool trackChanges)
+        {
+            var tweets = await FindAll(trackChanges)
+                 .Where(f => f.MainTweetID != null
+                 && f.MainTweetID.Equals(tweetId)
+                 && f.IsRetweet
+                 && f.Content == null
+                 && !f.IsDeleting)
+                 .Include(f => f.CreaterUser)
+                 .OrderByDescending(f => f.CreateDate)
+                 .ToListAsync();
+
+            return PagedList<Tweets>.ToPagedList(tweets, parameters);
+        }
+
+
+        public async Task<PagedList<Tweets>> GetAllRetweetsWithRepliesByUserAsync(string userId, TweetParameters parameters, bool trackChanges)
         {
             var tweets = await FindAll(trackChanges)
                  .Where(f => f.MainTweetID != null && f.CreaterUserId.Equals(userId) && !f.IsDeleting)
+                 .Include(x => x.CreaterUser)
+                 .Include(t => t.TweetMedias.Take(3))
                  .OrderByDescending(f => f.CreateDate)
                  .ToListAsync();
 
@@ -35,19 +94,20 @@ namespace Repositories.EFCore
         {
             var tweets = await FindAll(trackChanges)
                  .Where(f => f.MainTweetID == null && f.CreaterUserId.Equals(userId) && !f.IsDeleting)
+                 .Include(x => x.CreaterUser)
+                 .Include(t => t.TweetMedias.Take(3))
                  .OrderByDescending(f => f.CreateDate)
                  .ToListAsync();
 
             return PagedList<Tweets>.ToPagedList(tweets, parameters);
         }
+        
+        #endregion Feed by User
 
 
-        public async Task<PagedList<Tweets>> GetAllLikedTweetsByUserAsync(string userId, TweetParameters parameters, bool trackChanges)
-        {
-            throw new NotImplementedException();
-        }
 
 
+        #region Get Single or Default
         public async Task<Tweets?> GetTweetDetailbyId(string tweetId, bool trackChanges)
         {
             var tweet = await FindByCondition(t => t.Id.Equals(tweetId) && !t.IsDeleting, trackChanges)
@@ -76,9 +136,23 @@ namespace Repositories.EFCore
             await FindByCondition(t => t.Id.Equals(tweetId) && t.CreaterUserId.Equals(createrUserId) && !t.IsDeleting, trackChanges)
                 .SingleOrDefaultAsync();
 
+        public async Task<Tweets?> GetRetweetbyMainTweetAndUser(string mainTweetId, string createrUserId, bool trackChanges) =>
+            await FindByCondition(t => 
+            t.CreaterUserId.Equals(createrUserId) 
+            && !t.IsDeleting
+            && t.MainTweetID != null
+            && t.MainTweetID.Equals(mainTweetId)
+            && t.IsRetweet, trackChanges)
+                .SingleOrDefaultAsync();
+        #endregion Get Single or Default
+
+
+
+
+        #region C_UD
         public void CreateTweet(Tweets tweet) => Create(tweet);
         public void DeleteTweet(Tweets tweet) => Delete(tweet);
         public void UpdateTweet(Tweets tweet) => Update(tweet);
-
+        #endregion C_UD
     }
 }

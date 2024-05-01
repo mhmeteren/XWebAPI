@@ -19,17 +19,7 @@ namespace Repositories.EFCore
             return PagedList<TweetLikes>.ToPagedList(tweetLikes, parameters);
         }
 
-        public async Task<PagedList<TweetLikes>?> GetAllLikesByUser(string userId, TweetLikesParameters parameters, bool trackChanges)
-        {
-            var tweetLikes = await FindAll(trackChanges)
-                 .Where(x => x.UserId.Equals(userId))
-                 .Include(x => x.Tweets)
-                 .OrderByDescending(x => x.CreateDate)
-                 .ToListAsync();
 
-            return PagedList<TweetLikes>.ToPagedList(tweetLikes, parameters);
-        }
-     
         public async Task<TweetLikes?> GetTweetLikeById(string tweetId, string userId, bool trackChanges) =>
             await FindByCondition(x => x.TweetId.Equals(tweetId) && x.UserId.Equals(userId), trackChanges)
             .SingleOrDefaultAsync();
