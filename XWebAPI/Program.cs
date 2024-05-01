@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,9 @@ builder.Services.ConfigureHelperServices();
 builder.Services.ConfigureFileMangers(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.ConfigureRedis(builder.Configuration);
+builder.Services.AddMemoryCache();
+builder.Services.ConfigureRateLimitingOptions(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureVersioning();
 
 builder.Services.ConfigureIdentity();
@@ -87,6 +91,8 @@ if (app.Environment.IsProduction())
 }
 
 app.UseHttpsRedirection();
+
+app.UseIpRateLimiting();
 
 app.UseAuthentication();
 app.UseAuthorization();

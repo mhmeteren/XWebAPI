@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using AspNetCoreRateLimit;
 using Entities.Models;
 using Entities.UtilityClasses.Minio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -95,6 +96,24 @@ namespace XWebAPI.Extensions
             services.AddSingleton<IConnectionMultiplexer>(multiplexer);
             services.AddSingleton<ICacheService, RedisCacheManager>();
         }
+
+
+
+        public static void ConfigureRateLimitingOptions(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+
+            services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
+
+        }
+
+
+
 
 
         public static void ConfigureIdentity(this IServiceCollection services)
