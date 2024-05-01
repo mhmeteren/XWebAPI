@@ -92,6 +92,7 @@ namespace Services
                 });
 
             await _manager.SaveAsync();
+            //[NOTE] Send Notification to Following User
         }
 
         public async Task<bool> IsFollower(string followerId, string followingId)

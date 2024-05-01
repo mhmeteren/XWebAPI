@@ -7,7 +7,7 @@ namespace Repositories.Contracts
 {
     public interface IFollowsRepository : IRepositoryBase<Follows>
     {
-        
+        Task<IEnumerable<string>> GetAllFollowingIdsAsync(string userId, bool trackChanges);
 
         Task<PagedList<Follows>> GetAllFollowingsAsync(string userId, FollowParameters parameters, bool trackChanges);
         Task<PagedList<Follows>> GetAllFollowersAsync(string userId, FollowParameters parameters, bool trackChanges);

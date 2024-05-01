@@ -19,6 +19,10 @@ namespace Services
         readonly private Lazy<IFollowsService> _followerService;
         readonly private Lazy<IBlockedUsersService> _blockedUsersService;
 
+        readonly private Lazy<ITweetsService> _tweetsService;
+        readonly private Lazy<ITweetMediasService> _tweetMediasService;
+        readonly private Lazy<ITweetLikesService> _tweetLikesService;
+
 
 
         public ServiceManager(
@@ -37,6 +41,10 @@ namespace Services
             _blockedUsersService = new(() => new BlockedUsersManager(repositoryManager, mapper, _userService.Value));
             _followerService = new(() => new FollowsManager(repositoryManager, mapper, _userService.Value, _blockedUsersService.Value));
 
+            _tweetMediasService = new(() => new TweetMediasManager(repositoryManager, fileUploadService));
+            _tweetLikesService = new(() => new TweetLikesManager(repositoryManager, mapper));
+            _tweetsService = new(() => new TweetsManager(repositoryManager, mapper, _userService.Value, _tweetMediasService.Value, _tweetLikesService.Value, _followerService.Value));
+
         }
 
 
@@ -48,5 +56,11 @@ namespace Services
         public IFollowsService FollowsService => _followerService.Value;
 
         public IBlockedUsersService BlockedUsersService => _blockedUsersService.Value;
+
+        public ITweetsService TweetsService => _tweetsService.Value;
+
+        public ITweetMediasService TweetMediasService => _tweetMediasService.Value;
+
+        public ITweetLikesService TweetLikesService => _tweetLikesService.Value;
     }
 }

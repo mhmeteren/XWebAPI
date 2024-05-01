@@ -26,9 +26,7 @@ namespace Presentation.Controllers.v1
             return Ok(await _serviceManager.UserService.GetUserProfileByUsernameAsync(Username));
         }
 
-
-
-
+        #region Follows
         [Authorize(Roles = Roles.User)]
         [HttpGet("{Username}/Followers")]
         public async Task<IActionResult> GetAllFollowersByUserName([FromRoute] string Username, [FromQuery] FollowParameters parameters)
@@ -48,10 +46,11 @@ namespace Presentation.Controllers.v1
             return Ok(pagedResponse.Items);
         }
 
+        #endregion Follows
 
 
 
-
+        #region User
 
         [HttpPost]
         public async Task<IActionResult> RegisterUser([FromBody] UserDtoForRegister userDto,
@@ -133,6 +132,7 @@ namespace Presentation.Controllers.v1
             });
         }
 
+        #endregion User
 
     }
 }

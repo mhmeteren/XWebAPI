@@ -3,7 +3,7 @@
     public sealed class FileBadRequestException : BadRequestException
     {
         public FileBadRequestException()
-            : base("Geçersiz dosya türü veya boyutu.")
+            : base("Invalid file type or size.")
         {
         }
     }

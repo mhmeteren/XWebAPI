@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Entities.DataTransferObjects.BlockedUsers;
 using Entities.DataTransferObjects.Follower;
+using Entities.DataTransferObjects.Tweets;
 using Entities.DataTransferObjects.User;
 using Entities.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XWebAPI.Utilities.AutoMapper
 {
@@ -15,6 +17,7 @@ namespace XWebAPI.Utilities.AutoMapper
             CreateMap<Users, UserSelfDto>();
             CreateMap<Users, UserDtoForFollow>();
             CreateMap<Users, UserDtoForBlocked>();
+            CreateMap<Users, UserDtoForTweets>();
             CreateMap<UserDtoForRegister, Users>();
             CreateMap<UserDtoForAccountUpdate, Users>();
 
@@ -27,6 +30,25 @@ namespace XWebAPI.Utilities.AutoMapper
 
             //BlockedUsers
             CreateMap<BlockedUsers, BlockedUserDto>();
+
+
+            //Tweets
+            CreateMap<TweetDtoForCreate, Tweets>();
+            CreateMap<TweetDtoForEdit, Tweets>();
+            CreateMap<Tweets, TweetDtoForDetail>()
+                .ForMember(dest => dest.MediaPaths, opt => opt.MapFrom(src => src.TweetMedias.Select(tm => tm.Id).ToList()));
+            
+            CreateMap<Tweets, UserDtoForTweets>()
+                .IncludeMembers(src => src.CreaterUser);
+
+
+            //TweetLikes
+            CreateMap<TweetLikes, TweetDtoForDetail>()
+                 .IncludeMembers(src => src.Tweets);
+
+            CreateMap<TweetLikes, UserDtoForTweets>()
+                 .IncludeMembers(src => src.User);
+
 
         }
 

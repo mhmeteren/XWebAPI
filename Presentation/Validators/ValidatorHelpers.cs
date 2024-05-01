@@ -22,5 +22,22 @@ namespace Presentation.Validators
             return genderList.Contains(gender);
         }
 
+
+
+        public static bool ValidateNullableString(string value, int maxLength)
+        {
+            return value == null || (value.Length <= maxLength);
+        }
+
+        public static bool ValidateNullableList<T>(IEnumerable<T> list, int maxCount) where T : class
+        {
+            return list == null || list.Count() <= maxCount;
+        }
+
+        public static bool IsEnumValue<TEnum>(string value) where TEnum : struct, Enum
+        {
+            return Enum.TryParse(value, out TEnum enumValue) && Enum.IsDefined(typeof(TEnum), enumValue);
+        }
+
     }
 }
