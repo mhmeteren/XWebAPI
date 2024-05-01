@@ -5,7 +5,10 @@ using Entities.UtilityClasses.Minio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Minio;
+using Minio.AspNetCore.HealthChecks;
 using Repositories.Contracts;
 using Repositories.EFCore;
 using Services;
@@ -43,9 +46,16 @@ namespace XWebAPI.Extensions
 
         public static void ConfigureFileMangers(this IServiceCollection services, IConfiguration configuration)
         {
+            var minioConfig = configuration.GetSection("MinioSettings");
+            services.AddMinio(configureClient => configureClient
+                .WithEndpoint(minioConfig["endpoint"])
+                .WithCredentials(minioConfig["accessKey"], minioConfig["secretKey"])
+                .WithSSL(bool.Parse(minioConfig["SSL"] ?? "False"))
+                .Build());
+
             services.AddScoped<IFileUploadService, FileUploadManager>();
             services.AddSingleton<IFileDownloadService, FileDownloadManager>();
-            services.Configure<CustomMinioConfig>(configuration.GetSection("MinioSettings"));
+            services.Configure<CustomMinioConfig>(minioConfig);
         }
 
 
@@ -159,5 +169,37 @@ namespace XWebAPI.Extensions
             });
 
         }
+    
+    
+        public static void ConfigureHealthCheck(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHealthChecks()
+            .AddSqlServer(
+                    connectionString: configuration.GetConnectionString("sqlConnetion"),
+                    healthQuery: "SELECT 1",
+                    name: "SQL Server Check",
+                    failureStatus: HealthStatus.Unhealthy,
+                    tags: ["sql", "sql-server"])
+            .AddRedis(
+                    redisConnectionString: configuration.GetConnectionString("redisConnection"),
+                    name: "Redis Check",
+                    failureStatus: HealthStatus.Unhealthy,
+                    tags: ["cache", "redis"])
+             .AddMinio(
+                    factory: x => (MinioClient)x.GetRequiredService<IMinioClient>(),
+                    name: "Minio Check",
+                    failureStatus: HealthStatus.Unhealthy,
+                    tags: ["file", "minio"])
+             .AddElasticsearch(
+                    elasticsearchUri: configuration.GetConnectionString("elasticsearchUri"),
+                    name: "Elasticsearch Check",
+                    failureStatus: HealthStatus.Unhealthy,
+                    tags: ["log", "elasticsearch"]
+                );
+
+           
+        }
+
+    
     }
 }

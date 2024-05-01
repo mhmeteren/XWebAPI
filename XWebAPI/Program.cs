@@ -1,7 +1,9 @@
 using AspNetCoreRateLimit;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Services.Contracts;
 using XWebAPI.Extensions;
@@ -70,6 +72,8 @@ builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 
 
+builder.Services.ConfigureHealthCheck(builder.Configuration);
+
 var app = builder.Build();
 
 //ExceptionMiddlewareExtensions
@@ -99,4 +103,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponseNoExceptionDetails
+});
 app.Run();
