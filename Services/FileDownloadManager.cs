@@ -9,9 +9,10 @@ namespace Services
 {
     public class FileDownloadManager(
         ILoggerService logger,
-        IOptions<CustomMinioConfig> minioConfig) : IFileDownloadService
+        IOptions<CustomMinioConfig> minioConfig,
+        IMinioClient minioClient) : IFileDownloadService
     {
-
+        private readonly IMinioClient _minioClient = minioClient;
         private readonly ILoggerService _logger = logger;
 
 
@@ -27,17 +28,10 @@ namespace Services
 
             try
             {
-                var minio = new MinioClient()
-                                    .WithEndpoint(minioConfig.Endpoint)
-                                    .WithCredentials(minioConfig.ReadOnlyAccess.AccessKey, minioConfig.ReadOnlyAccess.SecretKey)
-                                    .WithSSL(minioConfig.SSL)
-                                    .Build();
-
-
                 var objectStatArgs = new StatObjectArgs()
                      .WithBucket(minioConfig.Bucket)
                      .WithObject(String.Concat(filePath, fileName));
-                var statObject = await minio.StatObjectAsync(objectStatArgs).ConfigureAwait(false);
+                var statObject = await _minioClient.StatObjectAsync(objectStatArgs).ConfigureAwait(false);
 
 
                 var args = new GetObjectArgs()
@@ -48,13 +42,13 @@ namespace Services
                          stream.CopyTo(memoryStream);
                      });
 
-                var s = await minio.GetObjectAsync(args).ConfigureAwait(false);
+                var s = await _minioClient.GetObjectAsync(args).ConfigureAwait(false);
 
                 return (memoryStream, s.ContentType);
             }
             catch (Exception ex) 
             {
-                _logger.LogError($"Method: {nameof(Download)}; Dosya indirilirken bir hata oluştu, {ex}");
+                _logger.LogError($"Method: {nameof(Download)}; An error occurred while download the media, {ex}");
                 throw new FileNameNotFoundException();
             }
         }

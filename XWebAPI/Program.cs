@@ -1,6 +1,9 @@
+using AspNetCoreRateLimit;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Services.Contracts;
 using XWebAPI.Extensions;
@@ -60,11 +63,16 @@ builder.Services.ConfigureHelperServices();
 builder.Services.ConfigureFileMangers(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.ConfigureRedis(builder.Configuration);
+builder.Services.AddMemoryCache();
+builder.Services.ConfigureRateLimitingOptions(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 builder.Services.ConfigureVersioning();
 
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 
+
+builder.Services.ConfigureHealthCheck(builder.Configuration);
 
 var app = builder.Build();
 
@@ -88,9 +96,15 @@ if (app.Environment.IsProduction())
 
 app.UseHttpsRedirection();
 
+app.UseIpRateLimiting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponseNoExceptionDetails
+});
 app.Run();

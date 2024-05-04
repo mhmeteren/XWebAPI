@@ -15,11 +15,12 @@ namespace Services
 {
     public class FileUploadManager(
         ILoggerService logger,
-        IOptions<CustomMinioConfig> minioConfig) : IFileUploadService
+        IOptions<CustomMinioConfig> minioConfig,
+        IMinioClient minioClient) : IFileUploadService
     {
 
         private readonly ILoggerService _logger = logger;
-        
+        private readonly IMinioClient _minioClient = minioClient;
 
 
         private readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png", ".mp4", ".avi", ".mov", ".wmv", ".mkv"];
@@ -41,23 +42,14 @@ namespace Services
 
             try
             {
-
-                var minio = new MinioClient()
-                                    .WithEndpoint(minioConfig.Endpoint)
-                                    .WithCredentials(minioConfig.FullAccess.AccessKey, minioConfig.FullAccess.SecretKey)
-                                    .WithSSL(minioConfig.SSL)
-                                    .Build();
-                
-
-
                 if (fileUpload.PastFileName is not null)
                 {
-                    await RemoveFile(minio, minioConfig.Bucket, String.Concat(fileUpload.FilePath.GetDescription(), fileUpload.PastFileName));
+                    await RemoveFile(_minioClient, minioConfig.Bucket, String.Concat(fileUpload.FilePath.GetDescription(), fileUpload.PastFileName));
                 }
 
 
 
-                FileUpload(minio, fileUpload.File, minioConfig.Bucket, fileNameWithPathForMinio).Wait();
+                FileUpload(_minioClient, fileUpload.File, minioConfig.Bucket, fileNameWithPathForMinio).Wait();
             }
             catch (MinioException ex)
             {
@@ -115,16 +107,7 @@ namespace Services
             {
                 try
                 {
-
-
-                    var minio = new MinioClient()
-                                    .WithEndpoint(minioConfig.Endpoint)
-                                    .WithCredentials(minioConfig.FullAccess.AccessKey, minioConfig.FullAccess.SecretKey)
-                                    .WithSSL(minioConfig.SSL)
-                                    .Build();
-
-
-                    await RemoveFile(minio, minioConfig.Bucket, path);
+                    await RemoveFile(_minioClient, minioConfig.Bucket, path);
                 }
                 catch (MinioException ex)
                 {
