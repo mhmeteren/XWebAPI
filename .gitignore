@@ -1,6 +1,6 @@
 */bin
 */obj
-*/appsettings.*
+#*/appsettings.*
 /packages
 
 .vs/
